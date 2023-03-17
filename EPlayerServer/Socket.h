@@ -23,6 +23,7 @@ enum SockAttr {
 	SOCK_ISSERVER = 1,//是否服务器 1表示是 0表示客户端
 	SOCK_ISNONBLOCK = 2,//是否阻塞 1表示非阻塞 0表示阻塞
 	SOCK_ISUDP = 4,//是否为UDP 1表示udp 0表示tcp
+	SOCK_ISIP = 8,//是否为IP协议 1表示IP协议 0表示本地套接字
 };
 
 class CSockParam {
@@ -40,6 +41,12 @@ public:
 		addr_in.sin_family = AF_INET;
 		addr_in.sin_port = port;
 		addr_in.sin_addr.s_addr = inet_addr(ip);
+	}
+	CSockParam(const sockaddr_in* addrin, int attr) {
+		this->ip = ip;
+		this->port = port;
+		this->attr = attr;
+		memcpy(&addr_in, addrin, sizeof(addr_in));
 	}
 	CSockParam(const Buffer& path, int attr) {
 		ip = path;
@@ -104,7 +111,8 @@ public:
 	virtual int Close() {
 		m_status = 3;
 		if (m_socket != -1) {
-			if(m_param.attr & SOCK_ISSERVER)
+			if ((m_param.attr & SOCK_ISSERVER) && //服务器
+				((m_param.attr & SOCK_ISIP) == 0))//非IP
 				unlink(m_param.ip);
 			int fd = m_socket;
 			m_socket = -1;
@@ -114,8 +122,9 @@ public:
 	};
 	virtual operator int() { return m_socket; }
 	virtual operator int()const { return m_socket; }
-
-public:
+	virtual operator const sockaddr_in* ()const { return &m_param.addr_in; }
+	virtual operator sockaddr_in* () { return &m_param.addr_in; }
+protected:
 	//套接字描述符，默认是-1
 	int m_socket;
 	//状态 0初始化未完成 1初始化完成 2连接完成 3已经关闭
@@ -124,16 +133,16 @@ public:
 	CSockParam m_param;
 };
 
-class CLocalSocket
+class CSocket
 	:public CSocketBase
 {
 public:
-	CLocalSocket() :CSocketBase() {}
-	CLocalSocket(int sock) :CSocketBase() {
+	CSocket() :CSocketBase() {}
+	CSocket(int sock) :CSocketBase() {
 		m_socket = sock;
 	}
 	//传递析构操作
-	virtual ~CLocalSocket() {
+	virtual ~CSocket() {
 		Close();
 	}
 public:
@@ -142,14 +151,21 @@ public:
 		if (m_status != 0)return -1;
 		m_param = param;
 		int type = (m_param.attr & SOCK_ISUDP) ? SOCK_DGRAM : SOCK_STREAM;
-		if (m_socket == -1)
-			m_socket = socket(PF_LOCAL, type, 0);
+		if (m_socket == -1) {
+			if (param.attr & SOCK_ISIP)
+				m_socket = socket(PF_INET, type, 0);
+			else
+				m_socket = socket(PF_LOCAL, type, 0);
+		}
 		else
 			m_status = 2;//accept来的套接字，已经处于连接状态
 		if (m_socket == -1)return -2;
 		int ret = 0;
 		if (m_param.attr & SOCK_ISSERVER) {
-			ret = bind(m_socket, m_param.addrun(), sizeof(sockaddr_un));
+			if (param.attr & SOCK_ISIP)
+				ret = bind(m_socket, m_param.addrin(), sizeof(sockaddr_in));
+			else
+				ret = bind(m_socket, m_param.addrun(), sizeof(sockaddr_un));
 			if (ret == -1) return -3;
 			ret = listen(m_socket, 32);
 			if (ret == -1)return -4;
@@ -172,10 +188,19 @@ public:
 		if (m_param.attr & SOCK_ISSERVER) {
 			if (pClient == NULL)return -2;
 			CSockParam param;
-			socklen_t len = sizeof(sockaddr_un);
-			int fd = accept(m_socket, param.addrun(), &len);
+			int fd = -1;
+			socklen_t len = 0;
+			if (m_param.attr & SOCK_ISIP) {
+				param.attr |= SOCK_ISIP;
+				len = sizeof(sockaddr_in);
+				fd = accept(m_socket, param.addrin(), &len);
+			}
+			else {
+				len = sizeof(sockaddr_un);
+				fd = accept(m_socket, param.addrun(), &len);
+			}
 			if (fd == -1)return -3;
-			*pClient = new CLocalSocket(fd);
+			*pClient = new CSocket(fd);
 			if (*pClient == NULL)return -4;
 			ret = (*pClient)->Init(param);
 			if (ret != 0) {
@@ -185,7 +210,10 @@ public:
 			}
 		}
 		else {
-			ret = connect(m_socket, m_param.addrun(), sizeof(sockaddr_un));
+			if (m_param.attr & SOCK_ISIP)
+				ret = connect(m_socket, m_param.addrin(), sizeof(sockaddr_in));
+			else
+				ret = connect(m_socket, m_param.addrun(), sizeof(sockaddr_un));
 			if (ret != 0)return -6;
 		}
 		m_status = 2;
@@ -212,7 +240,7 @@ public:
 			return (int)len;//收到数据
 		}
 		if (len < 0) {
-			if (errno == EINTR || (errno == EAGAIN)) {
+			if (errno == EINTR || (errno == EAGAIN)) {//非阻塞
 				data.clear();
 				return 0;//没有数据收到
 			}
@@ -225,3 +253,4 @@ public:
 		return CSocketBase::Close();
 	}
 };
+

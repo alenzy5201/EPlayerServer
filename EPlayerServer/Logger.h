@@ -78,7 +78,7 @@ public:
 		if (m_file == NULL)return -2;
 		int ret = m_epoll.Create(1);
 		if (ret != 0)return -3;
-		m_server = new CLocalSocket();
+		m_server = new CSocket();
 		if (m_server == NULL) {
 			Close();
 			return -4;
@@ -115,7 +115,7 @@ public:
 	//给其他非日志进程的进程和线程使用的
 	static void Trace(const LogInfo& info) {
 		int ret = 0;
-		static thread_local CLocalSocket client;
+		static thread_local CSocket client;
 		if (client == -1) {
 			ret = client.Init(CSockParam("./log/server.sock", 0));
 			if (ret != 0) {

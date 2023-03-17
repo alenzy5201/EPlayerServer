@@ -32,7 +32,7 @@ public:
 		int ret = 0;
 		if (m_server != NULL)return -1;//已经初始化了
 		if (m_path.size() == 0)return -2;//构造函数失败！！！
-		m_server = new CLocalSocket();
+		m_server = new CSocket();
 		if (m_server == NULL)return -3;
 		ret = m_server->Init(CSockParam(m_path, SOCK_ISSERVER));
 		if (ret != 0)return -4;
@@ -71,7 +71,7 @@ public:
 	int AddTask(_FUNCTION_ func, _ARGS_... args) 
 	{
 		//thread_local,一个线程拥有一个该变量。一个线程中多次调用该函数，也只会初始化一次
-		static thread_local CLocalSocket client;
+		static thread_local CSocket client;
 		int ret = 0;
 		if (client == -1) {
 			ret = client.Init(CSockParam(m_path, 0));
@@ -90,6 +90,7 @@ public:
 		}
 		return 0;
 	}
+	size_t Size() const { return m_threads.size(); }
 private:
 	int TaskDispatch() {
 		while (m_epoll != -1) {
@@ -137,6 +138,7 @@ private:
 		}
 		return 0;
 	}
+
 private:
 	CEpoll m_epoll;
 	//vector中的类类型必须要可以赋值构造和默认构造，因此使用指针

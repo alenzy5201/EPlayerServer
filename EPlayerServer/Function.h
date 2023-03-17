@@ -2,13 +2,22 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <functional>
+//一个函数：虚函数特性和模板函数特性，不能同时存在
+//一个模板类可以有虚函数
+
+class CSocketBase;
+class Buffer;
 
 class CFunctionBase
 {
 public:
 	virtual ~CFunctionBase() {}
-	virtual int operator()() = 0;
+	//如果都是纯虚函数，不符合业务逻辑。因为以下几个函数只要其中一种形式，不需要全部实现。
+	virtual int operator()() { return -1; }
+	virtual int operator()(CSocketBase*) { return -1; }
+	virtual int operator()(CSocketBase*, const Buffer&) { return -1; }
 };
+
 
 template<typename _FUNCTION_, typename... _ARGS_>
 class CFunction :public CFunctionBase

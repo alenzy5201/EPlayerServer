@@ -119,7 +119,6 @@ public:
 			close(fd);
 		}
 	}
-
 private:
 	int m_epoll;
 };

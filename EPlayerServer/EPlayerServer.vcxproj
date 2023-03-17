@@ -35,7 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{875af636-7bd9-436b-8d49-8424692dec98}</ProjectGuid>
+    <ProjectGuid>{76f00bee-1ff4-4f05-8634-435093dab46e}</ProjectGuid>
     <Keyword>Linux</Keyword>
     <RootNamespace>EPlayerServer</RootNamespace>
     <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
@@ -74,23 +74,29 @@
   <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>
-    </IncludePath>
-  </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="Epoll.cpp" />
+    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Thread.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Epoll.h" />
     <ClInclude Include="Function.h" />
+    <ClInclude Include="Logger.h" />
     <ClInclude Include="Process.h" />
+    <ClInclude Include="Socket.h" />
+    <ClInclude Include="Thread.h" />
+    <ClInclude Include="ThreadPool.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <LibraryDependencies>pthread;m;</LibraryDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

@@ -6,18 +6,9 @@
 #include <arpa/inet.h>
 #include <string>
 #include <fcntl.h>
+#include "Public.h"
 
-class Buffer :public std::string
-{
-public:
-	Buffer() :std::string() {}
-	Buffer(size_t size) :std::string() { resize(size); }
-	Buffer(const std::string& str) :std::string(str) {}
-	Buffer(const char* str) :std::string(str) {}
-	operator char* () { return (char*)c_str(); }
-	operator char* () const { return (char*)c_str(); }
-	operator const char* () const { return c_str(); }
-};
+
 
 enum SockAttr {
 	SOCK_ISSERVER = 1,//是否服务器 1表示是 0表示客户端
@@ -234,7 +225,7 @@ public:
 	//接收数据 大于零，表示接收成功 小于 表示失败 等于0 表示没有收到数据，但没有错误
 	virtual int Recv(Buffer& data) {
 		if (m_status < 2 || (m_socket == -1))return -1;
-		ssize_t len = read(m_socket, data, data.size());
+		ssize_t len = read(m_socket, (char*)data, data.size());
 		if (len > 0) {
 			data.resize(len);
 			return (int)len;//收到数据

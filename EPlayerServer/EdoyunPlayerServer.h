@@ -1,7 +1,9 @@
 #pragma once
 #include "Logger.h"
 #include "CServer.h"
+#include <HttpParser.h>
 #include <map>
+#include "Crypto.h"
 /*
 * 1. 客户端的地址问题
 * 2. 连接回调的参数问题
@@ -67,10 +69,77 @@ public:
 	}
 private:
 	int Connected(CSocketBase* pClient) {
+		//简单打印客户端信息
+		sockaddr_in* paddr = *pClient;
+		TRACEI("client connected arrd %s port:%d", inet_ntoa(paddr->sin_addr),paddr->sin_port);
 		return 0;
 	}
 	int Received(CSocketBase* pClient, const Buffer& data) {
+		//主要业务，在此处理
+		//HTTP解析
+		int ret = 0;
+		Buffer response = "";
+		ret = HttpParser(data);
+		if (ret != 0)
+		{
+			TRACEE("http parser failed!%d", ret);
+			//失败的应答
+			return 0;
+		}
+		else
+		{
+
+		}
+		//数据库的查询
+		//登录请求的验证
+		//验证结果的反馈
+		ret = pClient->Send(response);
+		if (ret != 0)
+		{
+			TRACEE("http response failed!%d", ret);
+		}
+		else
+		{
+			TRACEI("http response success!%d", ret);
+		}
 		return 0;
+	}
+	int HttpParser(const Buffer& data)
+	{
+		CHttpParser parser;
+		size_t size = parser.Parser(data);
+		if (size == 0 || parser.Errno() != 0)
+		{
+			TRACEE("size:%llu error:%u", size, parser.Errno());
+			return -1;
+		}
+		if (parser.Method() == HTTP_GET)
+		{
+			UrlParser url("https://192.168.1.200" + parser.Url());
+			int ret = url.Parser();
+			if (ret != 0)
+			{
+				TRACEE("ret = %d url[%s]", ret,"https://192.168.1.200"+parser.Url());
+				return -2;
+			}
+			Buffer uri = url.Uri();
+			if (uri == "login")
+			{
+				//处理登录
+				Buffer time = url["time"];
+				Buffer salt = url["salt"];
+				Buffer user = url["user"];
+				Buffer sign = url["sign"];
+				TRACEI("time %s salt %s user %s");
+				//数据库的登录 请求验证
+			}
+
+			//get
+		}
+		else if (parser.Method() == HTTP_POST)
+		{
+			//post 处理
+		}
 	}
 	int ThreadFunc()
 	{

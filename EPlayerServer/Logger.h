@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <sstream>
 #include <sys/stat.h>
+#include "Public.h"
 
 enum LogLevel {
 	LOG_INFO,

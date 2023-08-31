@@ -5,6 +5,7 @@
 本地的代码修改都在三月份**
 
 
-![image](https://github.com/alenzy5201/EPlayerServer/assets/47884783/ff7162b3-890a-48ce-9fe6-2bdd3ece513d)
+![image-20230831103632846](https://github.com/alenzy5201/EPlayerServer/assets/47884783/d1a99575-78dc-4001-ab2e-4d066987d9a8)
+
 
 

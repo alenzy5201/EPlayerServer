@@ -30,7 +30,7 @@ public:
 		this->port = port;
 		this->attr = attr;
 		addr_in.sin_family = AF_INET;
-		addr_in.sin_port = port;
+		addr_in.sin_port = htons(port);
 		addr_in.sin_addr.s_addr = inet_addr(ip);
 	}
 	CSockParam(const sockaddr_in* addrin, int attr) {

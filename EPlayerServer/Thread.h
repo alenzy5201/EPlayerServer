@@ -84,14 +84,14 @@ public:
 	}
 	bool isValid()const { return m_thread != 0; }
 private:
-	//__stdcall
+	//__stdcall 子线程中执行
 	static void* ThreadEntry(void* arg) {
 		CThread* thiz = (CThread*)arg;
 		struct sigaction act = { 0 };
 		sigemptyset(&act.sa_mask);
 		act.sa_flags = SA_SIGINFO;
 		act.sa_sigaction = &CThread::Sigaction;
-		sigaction(SIGUSR1, &act, NULL);
+		sigaction(SIGUSR1, &act, NULL);//子线程中虽然一直在执行函数。但是当信号发送来的时候，会组设
 		sigaction(SIGUSR2, &act, NULL);
 
 		thiz->EnterThread();

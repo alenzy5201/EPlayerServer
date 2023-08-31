@@ -23,7 +23,7 @@ int CServer::Init(CBusiness* business, const Buffer& ip, short port)
 	if (ret != 0) return -8;
 	for (size_t i = 0; i < m_pool.Size(); i++)
 	{
-		ret = m_pool.AddTask(&CServer::ThreadFunc, this);
+		ret = m_pool.AddTask(&CServer::ThreadFunc, this); 
 		if (ret != 0) return -9;
 	}
 	return 0;

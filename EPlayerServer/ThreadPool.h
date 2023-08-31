@@ -44,7 +44,7 @@ public:
 		for (unsigned i = 0; i < count; i++) {
 			m_threads[i] = new CThread(&CThreadPool::TaskDispatch, this);
 			if (m_threads[i] == NULL)return -7;
-			ret = m_threads[i]->Start();
+			ret = m_threads[i]->Start(); //开启线程，在线程中执行TaskDispatch函数
 			if (ret != 0)return -8;
 		}
 		return 0;
@@ -67,6 +67,8 @@ public:
 		//使用完毕后，也需要释放该文件：.sock文件
 		unlink(m_path);
 	}
+
+	//每个线程拥有一个addTask，并在每一个线程中执行一次 一个TaskDispatch
 	template<typename _FUNCTION_, typename... _ARGS_>
 	int AddTask(_FUNCTION_ func, _ARGS_... args) 
 	{
@@ -92,6 +94,7 @@ public:
 	}
 	size_t Size() const { return m_threads.size(); }
 private:
+	//在每个线程中执行taskDispath. 每个线程都会监听同一个主线程中的m_epoll. 如果主线程中向sock发送数据。空闲的线程会拿到这一个epoll事件。进行响应
 	int TaskDispatch() {
 		while (m_epoll != -1) {
 			EPEvents events;
@@ -127,7 +130,7 @@ private:
 								}
 								memcpy(&base, (char*)data, sizeof(base));
 								if (base != NULL) {
-									(*base)();
+									(*base)(); //最终逻辑
 									delete base;
 								}
 							}

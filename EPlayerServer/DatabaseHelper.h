@@ -37,7 +37,6 @@ public:
 	//是否连接
 	virtual bool IsConnected() = 0;
 };
-
 //表和列的基类的实现
 class _Field_;
 using PField = std::shared_ptr<_Field_>;
@@ -59,7 +58,7 @@ public:
 	virtual Buffer Delete(const _Table_& values) = 0;
 	//TODO:参数进行优化
 	virtual Buffer Modify(const _Table_& values) = 0;
-	virtual Buffer Query() = 0;
+	virtual Buffer Query(const Buffer& condition="") = 0;
 	//创建一个基于表的对象
 	virtual PTable Copy()const = 0;
 	virtual void ClearFieldUsed() = 0;
@@ -81,6 +80,7 @@ enum {
 };
 
 enum {
+	NONE = 0,
 	NOT_NULL = 1,
 	DEFAULT = 2,
 	UNIQUE = 4,
@@ -140,6 +140,13 @@ public:
 public:
 	//操作条件
 	unsigned Condition;
+	union {
+		bool Bool;
+		int Integer;
+		double Double;
+		Buffer* String;
+	}Value;
+	int nType;
 };
 
 

@@ -87,7 +87,7 @@ public:
 		memcpy(events.data(), evs.data(), sizeof(epoll_event) * ret);
 		return ret;
 	}
-	int Add(int fd, const EpollData& data = EpollData((void*)0), uint32_t events = EPOLLIN)
+	int Add(int fd, const EpollData& data =  ((void*)0), uint32_t events = EPOLLIN)
 	{
 		if (m_epoll == -1)return -1;
 		epoll_event ev = { events,data };
